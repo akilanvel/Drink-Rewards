@@ -1,3 +1,6 @@
+//Name: Akilan Gnananvel
+//NET ID: AXG180113
+
 package DrinkRewards;
 
 import java.io.File;
@@ -7,11 +10,9 @@ import java.util.Scanner;
 
 public class Main {
 	public static void main(String[] args) throws FileNotFoundException {
-		// variable to hold whether the preferred.dat exists
-		boolean preferredExists = false;
 
-		// check if preferred.dat exists by looping through the directory and seeing if
-		// there is a preferred.dat
+		// Check if preferred.dat exists in the directory
+		boolean preferredExists = false;
 		boolean preferredCreated = false;
 		File folder = new File(System.getProperty("user.dir"));
 		File[] listOfFiles = folder.listFiles();
@@ -22,7 +23,7 @@ public class Main {
 			}
 		}
 
-		// create and initialize preferred array if there is a preferred file
+		// Create and initialize preferred array if there is a preferred file
 		Customer[] preferred = null;
 		if (preferredExists) {
 			File file = new File("preferred.dat");
@@ -33,8 +34,7 @@ public class Main {
 			preferred = readPreferred(s, s1);
 		}
 
-		// check if customer.dat exists by looping through the directory and seeing if
-		// there is a customer.dat
+		// Check if customer.dat exists by looping through the directory
 		boolean customerExists = false;
 		File folder1 = new File(System.getProperty("user.dir"));
 		File[] listOfFiles1 = folder1.listFiles();
@@ -45,8 +45,7 @@ public class Main {
 			}
 		}
 
-		// check if orders.dat exists by looping through the directory and seeing if
-		// there is an orders.dat
+		// Check if orders.dat exists by looping through the directory
 		boolean ordersExists = false;
 		File folder2 = new File(System.getProperty("user.dir"));
 		File[] listOfFiles2 = folder2.listFiles();
@@ -57,37 +56,36 @@ public class Main {
 			}
 		}
 
-		// execute the program only if there is a customer.dat and if there is an
+		// Execute the program only if there is a customer.dat and if there is an
 		// orders.dat
 		if (!customerExists) {
 			System.out.println("The customer.dat file does not exist. The program cannot execute.");
 		} else if (!ordersExists) {
 			System.out.println("The orders.dat file does not exist. The program cannot execute.");
 		} else {
-			// create a scanner to go through customer.dat file
+			// Create a scanner to read the customer.dat file
 			File file = new File("customer.dat");
 			Scanner scanner = new Scanner(file);
 
-			// initialize regular customer array by calling a method to read it using
-			// scanners
+			// Initialize regular customer array
 			Customer[] customers = readCustomers(scanner, scanner);
 
-			// loop through orders using a scanner
+			// Loop through orders using a scanner
 			File orderFile = new File("orders.dat");
 			Scanner oScanner = new Scanner(orderFile);
-			while (oScanner.hasNextLine()) { // check if scanner has an order
-				// read in the order and split it up
+			while (oScanner.hasNextLine()) { // Check if scanner has an order
+				// Read in the entire order and split it up
 				String input = oScanner.nextLine();
 				String[] inputs = input.split(" ");
 
-				// check if the order is valid using a method
+				// Determine if the order is valid (by calling the skip() method)
 				boolean skip = skip(inputs, customers, preferred);
 
-				if (!skip) { // if the order is valid
+				if (!skip) { // If the order is valid
 					char regularOrPreferred = 'l'; // holds whether the order is for a regular customer, gold customer,
 													// or
 													// platinum customer
-					// split up each part of the order and put it in its corresponding variable
+					// Split up each part of the order and put it in its corresponding variable
 					String ID = inputs[0];
 					char drinkSize = inputs[1].charAt(0);
 					String drinkType = inputs[2];
@@ -117,7 +115,7 @@ public class Main {
 					}
 					float price = 0f; // the price of the order
 
-					// adjust the price of the order depending on the type of drink and its size
+					// Adjust the price of the order depending on the type of drink and its size
 					if (drinkType.equals("tea")) {
 						if (drinkSize == 'S') {
 							price += (0.12f * 12);
@@ -144,7 +142,7 @@ public class Main {
 						}
 					}
 
-					// add to the price of the order by finding the cost of the design on the
+					// Add to the price of the order by finding the cost of the design on the
 					// cylinder
 					if (drinkSize == 'S') {
 						price += (4f * Math.PI * 4.5f) * squareInchPrice;
@@ -154,12 +152,12 @@ public class Main {
 						price += (5.5f * Math.PI * 7f) * squareInchPrice;
 					}
 
-					// adjust the price for the quantity of drinks ordered
+					// Adjust the price for the quantity of drinks ordered
 					price *= quantity;
 
-					// handle cases depending on whether the customer at hand is regular, platinum,
+					// Handle cases depending on whether the customer at hand is regular, platinum,
 					// or gold
-					if (regularOrPreferred == 'r') { // if the customer is regular
+					if (regularOrPreferred == 'r') { // If the customer is regular
 						customers[index].setAmountSpent(customers[index].getAmountSpent() + price);
 						if (customers[index].getAmountSpent() >= 200) { // if the customer will jump directly to
 																		// platinum
@@ -212,7 +210,7 @@ public class Main {
 							customers = remove(customers, index);
 							preferredCreated = true;
 						}
-					} else if (regularOrPreferred == 'g') { // if the customer is a gold customer
+					} else if (regularOrPreferred == 'g') { // If the customer is a gold customer
 						// determine the amount they just spent (including discount)
 						price *= (100 - ((GoldCustomer) preferred[index]).getDiscountPercentage()) / 100;
 						preferred[index].setAmountSpent(preferred[index].getAmountSpent() + price);
@@ -254,7 +252,7 @@ public class Main {
 							((GoldCustomer) preferred[index]).setDiscountPercentage(10f);
 							preferred[index].setAmountSpent((preferred[index].getAmountSpent() - price) + (newPrice));
 						}
-					} else if (regularOrPreferred == 'p') { // if the customer we are handling is a platinum customer
+					} else if (regularOrPreferred == 'p') { // If the customer we are handling is a platinum customer
 						// if the bonus bucks cover the entire cost, set price to zero and reduce from
 						// bonus bucks. if not, remove applicable bonus bucks from total cost
 						if (price <= ((PlatinumCustomer) preferred[index]).getBonusBucks()) {
@@ -270,11 +268,6 @@ public class Main {
 						// after the transaction, if they have crossed $5 threshold(s), add bonus
 						// buck(s)
 						float bonus = 0f;
-						/*
-						 * for (double base = preferred[index].getAmountSpent() - price + 1; base <=
-						 * preferred[index] .getAmountSpent(); base += 0.0000001) { if ((int) base % 5
-						 * == 0) { bonus++; base = Math.ceil(base); } }
-						 */
 						for (double base = preferred[index].getAmountSpent() - price
 								+ 1; base < (int) preferred[index].getAmountSpent() + 1; base++) {
 							if ((int) base % 5 == 0) {
@@ -289,12 +282,12 @@ public class Main {
 				}
 			}
 
-			// close scanner objects
+			// Close the scanner objects
 			scanner.close();
 			oScanner.close();
 
-			// write updated customer list and preferred customer list to files using
-			// PrintWriter
+			// Write updated customer list and preferred customer list to customer.dat and
+			// preferred.dat
 			PrintWriter pwCustomer = new PrintWriter("customer.dat");
 			for (int i = 0; i < customers.length; i++) {
 				// print to the file in the appropriate format so that it can be input next time
@@ -313,24 +306,24 @@ public class Main {
 						pwPreferred.println(" " + ((PlatinumCustomer) preferred[i]).getBonusBucks());
 					}
 				}
-				//close PrintWriter object
+				// Close PrintWriter object
 				pwPreferred.close();
 			}
-			// close PrintWriter object
+			// Close PrintWriter object
 			pwCustomer.close();
 		}
 	}
 
-	// this method goes through the customer.dat file and reads in the information
-	// to an array and returns it
+	// This method returns a Customer array containing the customers in the
+	// customer.dat file
 	public static Customer[] readCustomers(Scanner scanner, Scanner scanner1) throws FileNotFoundException {
-		// create a file object for customer.dat
+		// Create a file object for customer.dat
 		File file = new File("customer.dat");
 
-		// initialize the scanner passed in as a parameter to read customer.dat
+		// Initialize the scanner passed in as a parameter to read customer.dat
 		scanner = new Scanner(file);
 
-		// determine the size of array by determining number of customers
+		// Determine the size of array by determining number of customers
 		int numCustomers = 0;
 		while (scanner.hasNextLine()) {
 			String temporary = scanner.nextLine();
@@ -340,13 +333,13 @@ public class Main {
 			}
 		}
 
-		// declare and initialize an array to the size that was determined earlier
+		// Declare and initialize an array to the size that was determined above
 		Customer[] customers = new Customer[numCustomers];
 
-		// initialize a new scanner to customer.dat
+		// Initialize another scanner to customer.dat
 		scanner1 = new Scanner(file);
 
-		// use the above scanner to fill up with customers array with customers from
+		// Use the above scanner to fill up with customers array with customers from
 		// customer.dat
 		for (int i = 0; i < customers.length && scanner1.hasNextLine(); i++) {
 			String temporary = scanner1.nextLine();
@@ -354,23 +347,23 @@ public class Main {
 			customers[i] = new Customer(inputs[1], inputs[2], inputs[0], Float.parseFloat(inputs[3]));
 		}
 
-		// close both scanners
+		// Close both scanners
 		scanner1.close();
 		scanner.close();
 
 		return customers;
 	}
 
-	// this method goes through the preferred.dat file and reads in the information
-	// to an array and returns it
+	// This method returns a Customer array containing the Gold customer and
+	// Platinum customers in the preferred.dat file
 	public static Customer[] readPreferred(Scanner scanner, Scanner scanner1) throws FileNotFoundException {
-		// create a file object to hold preferred.dat
+		// Create a file object to hold preferred.dat
 		File file = new File("preferred.dat");
 
-		// initialize a scanner parameter to preferred.dat
+		// Initialize a scanner parameter to preferred.dat
 		scanner = new Scanner(file);
 
-		// determine the number of preferred customers
+		// Determine the number of preferred customers
 		int numCustomers = 0;
 		while (scanner.hasNextLine()) {
 			String temporary = scanner.nextLine();
@@ -380,19 +373,19 @@ public class Main {
 			}
 		}
 
-		// initialize an array to hold preferred customers with the size determined
+		// Initialize an array to hold preferred customers with the size determined
 		// above
 		Customer[] preferred = new Customer[numCustomers];
 
-		// initialize another scanner parameter to preferred.dat
+		// Initialize another scanner parameter to preferred.dat
 		scanner1 = new Scanner(file);
 
-		// loop through preferred.dat and fill up the preferred array with customers
+		// Loop through preferred.dat and fill up the preferred array with customers
 		for (int i = 0; i < preferred.length && scanner1.hasNextLine(); i++) {
 			String temporary = scanner1.nextLine();
 			String[] inputs = temporary.split(" ");
 			boolean gold = false;
-			// if the preferred customer is gold, store him/her as a gold customer.
+			// If the preferred customer is gold, store him/her as a gold customer.
 			// otherwise, store him/her as a platinum customer
 			if (inputs[4].substring(inputs[4].length() - 1, inputs[4].length()).equals("%")) {
 				gold = true;
@@ -406,21 +399,21 @@ public class Main {
 			}
 		}
 
-		// close the scanners
+		// Close the scanners
 		scanner.close();
 		scanner1.close();
 
 		return preferred;
 	}
 
-	// this method determines whether an order in the order.dat file is valid
+	// This method determines whether an order in the order.dat file is valid
 	public static boolean skip(String[] inputs, Customer[] customers, Customer[] preferred) {
 
-		// the order is invalid if it doesn't have 5 components
+		// The order is invalid if it doesn't have 5 components
 		if (inputs.length != 5) {
 			return true;
 		}
-		// the order is invalid if the customer ID doesn't exist
+		// The order is invalid if the customer ID doesn't exist
 		boolean customerIdExists = false;
 		for (int i = 0; i < customers.length; i++) {
 			if (inputs[0].equals(customers[i].getGuestID())) {
@@ -437,15 +430,15 @@ public class Main {
 		if (!customerIdExists) {
 			return true;
 		}
-		// the order is invalid if the drink size is not S, M, or L
+		// The order is invalid if the drink size is not S, M, or L
 		if (!inputs[1].equals("S") && !inputs[1].equals("M") && !inputs[1].equals("L")) {
 			return true;
 		}
-		// the order is invalid if the drink type is not soda, tea, or punch
+		// The order is invalid if the drink type is not soda, tea, or punch
 		if (!inputs[2].equals("soda") && !inputs[2].equals("tea") && !inputs[2].equals("punch")) {
 			return true;
 		}
-		// the order is invalid if the square inch price is not a float and if the
+		// The order is invalid if the square inch price is not a float and if the
 		// quantity is not an integer
 		if (!isFloat(inputs[3]) || !isInt(inputs[4])) {
 			return true;
@@ -454,9 +447,9 @@ public class Main {
 		return false;
 	}
 
-	// this method determines if the parameter is a float
+	// This method determines if the parameter is a float
 	public static boolean isFloat(String s) {
-		// if converting the string to a float throws an exception, it is not a float
+		// If converting the string to a float doens't throw an exception, it is a float
 		try {
 			float f = Float.parseFloat(s);
 			if (f == 1) {
@@ -469,10 +462,10 @@ public class Main {
 		return true;
 	}
 
-	// this method determines if the parameter is an integer
+	// This method determines if the parameter is an integer
 	public static boolean isInt(String s) {
-		// if converting the string to an int throws an exception, the string is not an
-		// integer
+		// If converting the string to an int doesn't through an exception, then it is
+		// an int
 		try {
 			int i = Integer.parseInt(s);
 			if (i == 1) {
@@ -485,14 +478,14 @@ public class Main {
 		return true;
 	}
 
-	// this method returns the index of the customer in the customer array given
+	// This method returns the index of the customer in the customer array given
 	// his/her ID
 	public static int findCustomer(Customer[] customer, String ID) {
-		// loop through the customer array until a customer with matching ID is found
+		// Loop through the customer array until a customer with matching ID is found
 		int index = -1;
 		for (int i = 0; i < customer.length; i++) {
 			if (ID.equals(customer[i].getGuestID())) {
-				// if a customer with matching ID is found, set the index equals to where the
+				// If a customer with matching ID is found, set the index equals to where the
 				// matching customer is located in the customer array
 				index = i;
 			}
@@ -500,18 +493,18 @@ public class Main {
 		return index;
 	}
 
-	// this method adds a customer to the end of a customer array
+	// This method adds a customer to the end of a customer array
 	public static Customer[] add(Customer[] p, Customer c) {
-		// treat the array differently if it's null and if it is not
+		// Treat the array differently if it's null and if it is not
 		if (p != null) {
-			// create a new array holding the customer array plus 1 spot
+			// Create a new array holding the customer array plus 1 spot
 			Customer[] preferred = new Customer[p.length + 1];
-			// copy the old array to the new array
+			// Copy the old array to the new array
 			for (int x = 0; x < p.length; x++) {
 				preferred[x] = p[x];
 			}
 
-			// at the very end, assign the extra index to the customer we want added
+			// At the very end, assign the extra index to the customer we want added
 			preferred[p.length] = c;
 
 			return preferred;
@@ -525,14 +518,14 @@ public class Main {
 		}
 	}
 
-	// this method removes a customer from the customer array
+	// This method removes a customer from the customer array
 	public static Customer[] remove(Customer[] c, int i) {
-		// create a new array with one less spot than the old one
+		// Create a new array with one less spot than the old one
 		Customer[] customers = new Customer[c.length - 1];
 
-		// loop through the old array and copy every element
+		// Loop through the old array and copy every element
 		for (int x = 0, y = 0; x < c.length; x++) {
-			// except the one with the index that we want removed
+			// Except the one with the index that we want removed
 			if (x != i) {
 				customers[y] = c[x];
 				y++;
