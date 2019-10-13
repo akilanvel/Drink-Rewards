@@ -158,7 +158,7 @@ public class Main {
 					// Handle cases depending on whether the customer at hand is regular, platinum,
 					// or gold
 					if (regularOrPreferred == 'r') { // If the customer is regular
-						customers[index].setAmountSpent(customers[index].getAmountSpent() + price);
+						customers[index].setAmountSpent(round(customers[index].getAmountSpent() + price)); // 1
 						if (customers[index].getAmountSpent() >= 200) { // if the customer will jump directly to
 																		// platinum
 							// give the appropriate number of bonus bucks and update the amount they spent
@@ -175,8 +175,8 @@ public class Main {
 																				// gold status
 							// apply the appropriate discount to the order and fix the amount they spent
 							float discount = 15f;
-							customers[index].setAmountSpent(
-									(customers[index].getAmountSpent() - price) + (price * ((100f - discount) / 100f)));
+							customers[index].setAmountSpent(round((customers[index].getAmountSpent() - price)
+									+ (price * ((100f - discount) / 100f))));
 							preferred = add(preferred,
 									new GoldCustomer(customers[index].getFirstName(), customers[index].getLastName(),
 											customers[index].getGuestID(), customers[index].getAmountSpent(),
@@ -188,8 +188,8 @@ public class Main {
 																				// gold status
 							// apply the appropriate discount to the order and fix the amount they spent
 							float discount = 10f;
-							customers[index].setAmountSpent(
-									(customers[index].getAmountSpent() - price) + (price * ((100f - discount) / 100f)));
+							customers[index].setAmountSpent(round((customers[index].getAmountSpent() - price)
+									+ (price * ((100f - discount) / 100f))));
 							preferred = add(preferred,
 									new GoldCustomer(customers[index].getFirstName(), customers[index].getLastName(),
 											customers[index].getGuestID(), customers[index].getAmountSpent(),
@@ -201,8 +201,8 @@ public class Main {
 																				// gold status
 							// apply the appropriate discount to the order and fix the amount they spent
 							float discount = 5f;
-							customers[index].setAmountSpent(
-									(customers[index].getAmountSpent() - price) + (price * ((100f - discount) / 100f)));
+							customers[index].setAmountSpent(round((customers[index].getAmountSpent() - price)
+									+ (price * ((100f - discount) / 100f))));
 							preferred = add(preferred,
 									new GoldCustomer(customers[index].getFirstName(), customers[index].getLastName(),
 											customers[index].getGuestID(), customers[index].getAmountSpent(),
@@ -213,17 +213,17 @@ public class Main {
 					} else if (regularOrPreferred == 'g') { // If the customer is a gold customer
 						// determine the amount they just spent (including discount)
 						price *= (100 - ((GoldCustomer) preferred[index]).getDiscountPercentage()) / 100;
-						preferred[index].setAmountSpent(preferred[index].getAmountSpent() + price);
+						preferred[index].setAmountSpent(round(preferred[index].getAmountSpent() + price)); // 2
 						if (preferred[index].getAmountSpent() >= 200) { // if the customer needs to be promoted to
 																		// platinum
 							// add a platinum customer to the array and remove the gold one
 							float temp = (preferred[index].getAmountSpent() - 200);
 							float bonus = (float) ((int) temp / 5);
-							preferred = add(preferred,
+							preferred = promote(preferred,
 									new PlatinumCustomer(preferred[index].getFirstName(),
 											preferred[index].getLastName(), preferred[index].getGuestID(),
-											preferred[index].getAmountSpent(), bonus));
-							preferred = remove(preferred, index);
+											preferred[index].getAmountSpent(), bonus),
+									index);
 						} else if (preferred[index].getAmountSpent() >= 150
 								&& ((GoldCustomer) preferred[index]).getDiscountPercentage() <= 10f) { // if the
 																										// customer
@@ -237,7 +237,8 @@ public class Main {
 									/ ((100 - ((GoldCustomer) preferred[index]).getDiscountPercentage()) / 100);
 							newPrice *= 0.85f;
 							((GoldCustomer) preferred[index]).setDiscountPercentage(15f);
-							preferred[index].setAmountSpent((preferred[index].getAmountSpent() - price) + (newPrice));
+							preferred[index]
+									.setAmountSpent(round(preferred[index].getAmountSpent() - price) + (newPrice)); // 3
 						} else if (preferred[index].getAmountSpent() >= 100
 								&& ((GoldCustomer) preferred[index]).getDiscountPercentage() <= 5f) { // if the customer
 																										// needs to be
@@ -250,21 +251,22 @@ public class Main {
 									/ ((100 - ((GoldCustomer) preferred[index]).getDiscountPercentage()) / 100);
 							newPrice *= 0.90f;
 							((GoldCustomer) preferred[index]).setDiscountPercentage(10f);
-							preferred[index].setAmountSpent((preferred[index].getAmountSpent() - price) + (newPrice));
+							preferred[index]
+									.setAmountSpent(round(preferred[index].getAmountSpent() - price) + (newPrice)); // 4
 						}
 					} else if (regularOrPreferred == 'p') { // If the customer we are handling is a platinum customer
 						// if the bonus bucks cover the entire cost, set price to zero and reduce from
 						// bonus bucks. if not, remove applicable bonus bucks from total cost
 						if (price <= ((PlatinumCustomer) preferred[index]).getBonusBucks()) {
 							((PlatinumCustomer) preferred[index])
-									.setBonusBucks(((PlatinumCustomer) preferred[index]).getBonusBucks() - price);
-							price = 0;
+									.setBonusBucks(((PlatinumCustomer) preferred[index]).getBonusBucks() - (int) price);
+							price -= (int) price;
 						} else if (price > ((PlatinumCustomer) preferred[index]).getBonusBucks()) {
 							price -= ((PlatinumCustomer) preferred[index]).getBonusBucks();
 							((PlatinumCustomer) preferred[index]).setBonusBucks(0f);
 						}
 						// add price (with bonus bucks used) to the amount spent
-						preferred[index].setAmountSpent(preferred[index].getAmountSpent() + price);
+						preferred[index].setAmountSpent(round(preferred[index].getAmountSpent() + price)); // 5
 						// after the transaction, if they have crossed $5 threshold(s), add bonus
 						// buck(s)
 						float bonus = 0f;
@@ -277,7 +279,6 @@ public class Main {
 						// add bonus bucks to customer
 						((PlatinumCustomer) preferred[index])
 								.setBonusBucks(((PlatinumCustomer) preferred[index]).getBonusBucks() + bonus);
-
 					}
 				}
 			}
@@ -291,19 +292,43 @@ public class Main {
 			PrintWriter pwCustomer = new PrintWriter("customer.dat");
 			for (int i = 0; i < customers.length; i++) {
 				// print to the file in the appropriate format so that it can be input next time
-				pwCustomer.println(customers[i].getGuestID() + " " + customers[i].getFirstName() + " "
-						+ customers[i].getLastName() + " " + customers[i].getAmountSpent());
+				pwCustomer.print(customers[i].getGuestID() + " " + customers[i].getFirstName() + " "
+						+ customers[i].getLastName() + " ");
+				int indexOfDecimal = -1;
+				String f1 = Float.toString(customers[i].getAmountSpent());
+				for (int ix = 0; ix < f1.length(); ix++) {
+					if (f1.substring(ix, ix+1).equals(".")) {
+						indexOfDecimal = ix;
+					}
+				}
+				if (f1.length() - indexOfDecimal < 3) {
+					pwCustomer.println(customers[i].getAmountSpent() + "0");
+				} else {
+					pwCustomer.println(customers[i].getAmountSpent());
+				}
 			}
 			if (preferredExists || preferredCreated) {
 				PrintWriter pwPreferred = new PrintWriter("preferred.dat");
 				for (int i = 0; i < preferred.length; i++) {
 					// print to the file in the appropriate format so that it can be input next time
 					pwPreferred.print(preferred[i].getGuestID() + " " + preferred[i].getFirstName() + " "
-							+ preferred[i].getLastName() + " " + preferred[i].getAmountSpent());
+							+ preferred[i].getLastName() + " ");
+					int indexOfDecimal = -1;
+					String f1 = Float.toString(preferred[i].getAmountSpent());
+					for (int ix = 0; ix < f1.length(); ix++) {
+						if (f1.substring(ix, ix+1).equals(".")) {
+							indexOfDecimal = ix;
+						}
+					}
+					if (f1.length() - indexOfDecimal < 3) {
+						pwPreferred.print(preferred[i].getAmountSpent() + "0");
+					} else {
+						pwPreferred.print(preferred[i].getAmountSpent());
+					}
 					if (preferred[i] instanceof GoldCustomer) {
-						pwPreferred.println(" " + ((GoldCustomer) preferred[i]).getDiscountPercentage() + "%");
+						pwPreferred.println(" " + (int) ((GoldCustomer) preferred[i]).getDiscountPercentage() + "%");
 					} else if (preferred[i] instanceof PlatinumCustomer) {
-						pwPreferred.println(" " + ((PlatinumCustomer) preferred[i]).getBonusBucks());
+						pwPreferred.println(" " + (int) ((PlatinumCustomer) preferred[i]).getBonusBucks());
 					}
 				}
 				// Close PrintWriter object
@@ -535,5 +560,30 @@ public class Main {
 		}
 
 		return customers;
+	}
+
+	// This method replaces a customer with another customer in the customer array
+	// while keeping all other elements in the same position
+	public static Customer[] promote(Customer[] c, Customer p, int index) {
+		// create a new array with the same length
+		Customer[] preferred = new Customer[c.length];
+
+		// Loop through the old array and copy every element
+		for (int i = 0; i < c.length; i++) {
+			// But put the new Customer at the index that was passed in as parameter
+			if (i == index) {
+				preferred[i] = p;
+			} else {
+				preferred[i] = c[i];
+			}
+		}
+		return preferred;
+	}
+
+	// This method rounds a float to the nearest hundredth (2 decimal places)
+	public static float round(float f) {
+		f = Math.round(f * 100.0f) / 100.0f;
+		
+		return f;
 	}
 }
