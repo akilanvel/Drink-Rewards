@@ -1,6 +1,3 @@
-//Name: Akilan Gnananvel
-//NET ID: AXG180113
-
 package DrinkRewards;
 
 import java.io.File;
